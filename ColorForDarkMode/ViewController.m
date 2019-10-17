@@ -10,7 +10,7 @@
 
 @interface ViewController () <UITableViewDataSource>
 
-@property (nonatomic, strong) NSMutableDictionary *dataSource;
+@property (nonatomic, strong) NSMutableArray *dataSource;
 
 @property (nonatomic, strong) UILabel *darkType;
 @end
@@ -19,7 +19,7 @@
 
 - (void)viewDidLayoutSubviews{
     [super viewDidLayoutSubviews];
-    NSLog(@"viewDidLayoutSubviews");
+//    NSLog(@"viewDidLayoutSubviews");
 }
 
 - (void)layoutVCViews{
@@ -45,8 +45,42 @@
         [sv.rightAnchor constraintEqualToAnchor:self.view.rightAnchor], [sv.bottomAnchor constraintEqualToAnchor:self.view.safeAreaLayoutGuide.bottomAnchor]
     ]];
 
-    self.dataSource = [NSMutableDictionary dictionaryWithCapacity:10];
+    self.dataSource = [NSMutableArray arrayWithCapacity:10];
 
+    //    第一组，前景色。文本和分割线使用
+
+    [self.dataSource addObject:@{
+        @"---- 前景色（看主标题字体色）": @[
+                UIColor.labelColor,
+                UIColor.secondaryLabelColor,
+                UIColor.tertiaryLabelColor,
+                UIColor.quaternaryLabelColor,
+                UIColor.linkColor,
+                UIColor.placeholderTextColor,
+                UIColor.separatorColor,
+                UIColor.opaqueSeparatorColor
+        ]
+    }];
+    // 背景色，
+    [self.dataSource addObject:@{
+        @"---- 背景色（看 Cell 背景色）": @[
+                UIColor.systemBackgroundColor,
+                UIColor.secondarySystemBackgroundColor,
+                UIColor.tertiarySystemBackgroundColor,
+                UIColor.systemGroupedBackgroundColor,
+                UIColor.secondarySystemGroupedBackgroundColor,
+                UIColor.tertiarySystemGroupedBackgroundColor,
+        ]
+    }];
+    // 各式填充色
+    [self.dataSource addObject:@{
+        @"---- 各式填充色（看 Cell 背景色）": @[
+                UIColor.systemFillColor,
+                UIColor.secondarySystemFillColor,
+                UIColor.tertiarySystemFillColor,
+                UIColor.quaternarySystemFillColor
+        ]
+    }];
     // 标题
     UILabel *title = [UILabel new];
     title.frame = CGRectMake(0, 0, 200, 60);
@@ -62,41 +96,16 @@
     }];
     title.textColor = titleColor;
     sv.tableHeaderView = title;
-    //    第一组，前景色。文本和分割线使用
-    NSDictionary *enums = @{
-        @"labelColor" : UIColor.labelColor,
-        @"secondaryLabelColor" : UIColor.secondaryLabelColor,
-        @"tertiaryLabelColor" : UIColor.tertiaryLabelColor,
-        @"quaternaryLabelColor" : UIColor.quaternaryLabelColor,
-        @"linkColor" : UIColor.linkColor,
-        @"placeholderTextColor" : UIColor.placeholderTextColor,
-        @"separatorColor" : UIColor.separatorColor,
-        @"opaqueSeparatorColor" : UIColor.opaqueSeparatorColor
-    };
-    [self.dataSource setObject:enums forKey:@"---- 前景色（看主标题字体色）"];
-    // 背景色，
-    NSDictionary *enums2 = @{
-        @"systemBackgroundColor" : UIColor.systemBackgroundColor,
-        @"secondarySystemBackgroundColor" : UIColor.secondarySystemBackgroundColor,
-        @"tertiarySystemBackgroundColor" : UIColor.tertiarySystemBackgroundColor,
-        @"quaternaryLabelColor" : UIColor.quaternaryLabelColor,
-        @"systemGroupedBackgroundColor" : UIColor.systemGroupedBackgroundColor,
-        @"secondarySystemGroupedBackgroundColor" : UIColor.secondarySystemGroupedBackgroundColor,
-        @"tertiarySystemGroupedBackgroundColor" : UIColor.tertiarySystemGroupedBackgroundColor
-    };
-    [self.dataSource setObject:enums2 forKey:@"---- 背景色（看 Cell 背景色）"];
+    printf("\r\n 颜色 | #hex | rgba");
+    printf("\r\n --- | --- | ---");
+}
 
-    // 各式填充色
-    NSDictionary *enums3 = @{
-        @"systemFillColor" : UIColor.systemFillColor,
-        @"secondarySystemFillColor" : UIColor.secondarySystemFillColor,
-        @"tertiarySystemFillColor" : UIColor.tertiarySystemFillColor,
-        @"quaternarySystemFillColor" : UIColor.quaternarySystemFillColor,
-        @"systemGroupedBackgroundColor" : UIColor.systemGroupedBackgroundColor,
-        @"secondarySystemGroupedBackgroundColor" : UIColor.secondarySystemGroupedBackgroundColor,
-        @"tertiarySystemGroupedBackgroundColor" : UIColor.tertiarySystemGroupedBackgroundColor
-    };
-    [self.dataSource setObject:enums3 forKey:@"---- 各式填充色（看 Cell 背景色）"];
+- (NSString *)getColorName:(UIColor *)color{
+    NSString *name = [color description];
+    NSRange start = [name rangeOfString:@"name = "];
+    NSInteger from = start.length + start.location;
+    NSInteger len = name.length - 1 - from;
+    return [name substringWithRange:NSMakeRange(from, len)];
 }
 
 - (NSString *)hexFromUIColor:(UIColor *)color
@@ -123,16 +132,18 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return self.dataSource.allKeys.count;
+//    NSLog(@"numberOfSectionsInTableView, count = %d", self.dataSource.count);
+    return self.dataSource.count;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    NSArray *allKeys = self.dataSource.allKeys;
-    NSString *key = [allKeys objectAtIndex:section];
 
-    NSDictionary *value = self.dataSource[key];
-    return value.allKeys.count;
+    NSDictionary *value = self.dataSource[section];
+    NSString *key = value.allKeys.firstObject;
+    
+    NSArray *colors = value[key];
+    return colors.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -142,16 +153,20 @@
     if (!cell) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:identifier];
     }
-    NSArray *allKeys = self.dataSource.allKeys;
-    NSString *key = [allKeys objectAtIndex:indexPath.section];
+    NSDictionary *value = self.dataSource[indexPath.section];
+    NSString *key = value.allKeys.firstObject;
+    
+    NSArray *colors = value[key];
+    UIColor *color = [colors objectAtIndex:indexPath.row];
 
-    NSDictionary *value = self.dataSource[key];
-    NSArray *subKeys = value.allKeys;
-    NSString *subKey = subKeys[indexPath.row];
-    UIColor *color = [value objectForKey:subKey];
-
-    cell.textLabel.text = subKey;
-    cell.detailTextLabel.text = [NSString stringWithFormat:@"%@; %@", [self hexFromUIColor:color],[self rgbaFromUIColor:color]];
+    NSString *colorName = [self getColorName:color];
+    cell.textLabel.text = colorName;
+    NSString *hex = [self hexFromUIColor:color];
+    NSString *rgba = [self rgbaFromUIColor:color];
+    
+    printf("\r\n %s | %s | %s", [colorName UTF8String], [hex UTF8String], [rgba UTF8String]);
+    NSString * _Nonnull desc = [NSString stringWithFormat:@"%@; %@", hex, rgba];
+    cell.detailTextLabel.text = desc;
     if ( [key containsString:@"前景色"]) {
         // 字体，前景色
         cell.textLabel.textColor = color;
@@ -163,8 +178,8 @@
 }
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section{
-    NSArray *allKeys = self.dataSource.allKeys;
-    NSString *key = [allKeys objectAtIndex:section];
+    NSDictionary *value = self.dataSource[section];
+    NSString *key = value.allKeys.firstObject;
     return key;
 }
 @end
