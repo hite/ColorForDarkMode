@@ -81,6 +81,23 @@
                 UIColor.quaternarySystemFillColor
         ]
     }];
+    // 内置颜色
+    [self.dataSource addObject:@{
+        @"---- 各式填充色（看 Cell 背景色）": @[
+                UIColor.systemRedColor,
+                UIColor.systemGreenColor,
+                UIColor.systemBlueColor,
+                UIColor.systemOrangeColor,
+                UIColor.systemYellowColor,
+                UIColor.systemPinkColor,
+                UIColor.systemPurpleColor,
+                UIColor.systemTealColor,
+                UIColor.systemIndigoColor,
+                UIColor.systemGrayColor,
+                UIColor.systemGray2Color,
+                UIColor.systemGray3Color
+        ]
+    }];
     // 标题
     UILabel *title = [UILabel new];
     title.frame = CGRectMake(0, 0, 200, 60);
@@ -115,7 +132,8 @@
 
     // can not invert - the only component is the alpha
     // e.g. self == [UIColor groupTableViewBackgroundColor]
-    return [NSString stringWithFormat:@"#%X%X%X%X", (long)(r * 255), (long)(g * 255), (long)(b * 255), (long)(a * 255)];
+//    NSInteger red = (long)(r * 255),green = (long)(g * 255), blue = (long)(b * 255), alpha = (long)(a * 255)
+    return [NSString stringWithFormat:@"#%02X%02X%02X%02X", (long)(r * 255), (long)(g * 255), (long)(b * 255), (long)(a * 255)];
 }
 
 - (NSString *)rgbaFromUIColor:(UIColor *)color
@@ -125,7 +143,7 @@
 
     // can not invert - the only component is the alpha
     // e.g. self == [UIColor groupTableViewBackgroundColor]
-    return [NSString stringWithFormat:@"rgba(%0.4f,%0.4f,%0.4f,%0.2f)", r, g, b, a];
+    return [NSString stringWithFormat:@"rgba(%ld,%ld,%ld,%0.2f)", (long)(r * 255), (long)(g * 255), (long)(b * 255), a];
 }
 
 #pragma mark datasource
@@ -164,10 +182,10 @@
     NSString *hex = [self hexFromUIColor:color];
     NSString *rgba = [self rgbaFromUIColor:color];
     
-    printf("\r\n %s | %s | %s", [colorName UTF8String], [hex UTF8String], [rgba UTF8String]);
+    printf("\r\n <span style='display:inline-block;background-color:%s;width: 20px;height:20px'></span> %s | %s | %s", [hex UTF8String], [colorName UTF8String], [hex UTF8String], [rgba UTF8String]);
     NSString * _Nonnull desc = [NSString stringWithFormat:@"%@; %@", hex, rgba];
     cell.detailTextLabel.text = desc;
-    if ( [key containsString:@"前景色"]) {
+    if (indexPath.section == 0 || indexPath.section == 3) {
         // 字体，前景色
         cell.textLabel.textColor = color;
     } else {
